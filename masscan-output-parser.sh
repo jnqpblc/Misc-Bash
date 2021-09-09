@@ -37,11 +37,13 @@ else
    DBTABLE=scandata
    sqlite3 $DBFILE "CREATE TABLE $DBTABLE(hostname varchar(100), ip varchar(16), port integer(5), protocol varchar(3), state varchar(20), service varchar(100), version varchar(100))"
     for ip in $(awk '{print $6}' $1|sort -u); do
-      for port in $(egrep "$(echo $ip|sed 's/\./\\./g;')" $1 |awk '{print $4}'|sort -n); do
-        sqlite3 $DBFILE "INSERT INTO $DBTABLE VALUES (\"\", \"$ip\", \"$port\", \"tcp\", \"open\", \"\", \"\")"
+      for protoport in $(egrep "$(echo $ip|sed 's/\./\\./g;')" $1 |awk '{print $4}'|sort -n); do
+        port=$(echo $protoport|cut -d'/' -f1);
+        proto=$(echo $protoport|cut -d'/' -f2)
+        sqlite3 $DBFILE "INSERT INTO $DBTABLE VALUES (\"\", \"$ip\", \"$port\", \"$proto\", \"open\", \"\", \"\")"
       done
     done
   else
-    printf "\nSyntax: $0 <masscan-output.txt> <{format}|summary|ports|csv|xml|sqlite>\n\n"
+    printf "\nSyntax: $0 <masscan-output.txt> <format|summary|csv>\n\n"
   fi
 fi
